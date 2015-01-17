@@ -27,94 +27,106 @@
       <!-- Template Start -->
       <script type="text/ng-template" id="index-tmpl">
         <h1>帳票一覧</h1>
-        <ul>
-          <li>#x yyyy/mm/dd <a href="#/sheet/x">詳細を確認する</a></li>
-          <li>#y yyyy/mm/dd <a href="#/sheet/y">詳細を確認する</a></li>
-          <li>#z yyyy/mm/dd <a href="#/sheet/z">詳細を確認する</a></li>
+        <ul ng-show="list.length">
+          <li ng-repeat="sheet in list">
+            #{{ sheet.id }}
+            {{ sheet.createdAt | date:'yyyy/MM/dd HH:mm' }}
+            <a ng-href="#/sheet/{{ sheet.id }}">詳細を確認する</a>
+          </li>
         </ul>
+        <div class="alert alert-info" ng-hide="list.length">
+          帳票が存在しません。 <a href="#/new" class="alert-link">新しい帳票を作る</a>
+        </div>
       </script>
 
       <script type="text/ng-template" id="new-tmpl">
         <h1>帳票作成</h1>
-        <form>
+        <form novalidate name="sheetForm" ng-submit="save()">
           <table class="table">
             <colgroup></colgroup>
             <colgroup span="3" class="col-sm"></colgroup>
             <colgroup></colgroup>
+            <thead>
+              <tr>
+                <th>商品名</th>
+                <th>単価</th>
+                <th>個数</th>
+                <th>小計</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="orderLine in lines">
+                <td>
+                  <input class="form-control" type="text" ng-model="orderLine.productName" required>
+                </td>
+                <td>
+                  <input class="form-control" type="number" ng-model="orderLine.unitPrice" required min="0" ng-pattern="integer">
+                </td>
+                <td>
+                  <input class="form-control" type="number" ng-model="orderLine.count" required min="0" ng-pattern="integer">
+                </td>
+                <td>{{ getSubtotal(orderLine) | number }}</td>
+                <td>
+                  <button
+                    type="button"
+                    class="btn btn-default"
+                    ng-click="removeLine(orderLine)"
+                    ng-disabled="disabledDelBtn">削除</button></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3">合計:</td>
+                <td colspan="2">{{ getTotalAmount(lines) | number }}</td>
+              </tr>
+            </tfoot>
+          </table>
+          <div ng-show="sheetForm.$invalid">
+            <span ng-show="sheetForm.$error.required">空欄が存在しています。</span>
+            <span ng-show="sheetForm.$error.min">単価、個数の最小値は 0 です。</span>
+            <span ng-show="sheetForm.$error.pattern">単価、個数は整数で指定してください。</span>
+          </div>
+          <div>
+            <button type="button" class="btn btn-primary" ng-click="addLine()">明細行を追加</button>
+            <button type="button" class="btn btn-danger" ng-click="initialize()">帳票を初期化</button>
+            <button type="submit" class="btn btn-success" ng-disabled="sheetForm.$invalid">帳票を保存</button>
+          </div>
+        </form>
+      </script>
+
+      <script type="text/ng-template" id="sheet-tmpl">
+        <div ng-show="id">
+          <h1>帳票詳細 #{{ id }}</h1>
+          <p>作成日時: {{ createdAt | date:'yyyy/MM/dd HH:mm' }}</p>
+          <table class="table">
             <thead>
             <tr>
             <th>商品名</th>
             <th>単価</th>
             <th>個数</th>
             <th>小計</th>
-            <th></th>
             </tr>
             </thead>
             <tbody>
-            <tr>
-            <td><input class="form-control" type="text"></td>
-            <td><input class="form-control" type="number"></td>
-            <td><input class="form-control" type="number"></td>
-            <td>4,500</td>
-            <td><button type="button" class="btn btn-default">削除</button></td>
-            </tr>
-            <tr>
-            <td><input class="form-control" type="text"></td>
-            <td><input class="form-control" type="number"></td>
-            <td><input class="form-control" type="number"></td>
-            <td>6,000</td>
-            <td><button type="button" class="btn btn-default">削除</button></td>
+            <tr ng-repeat="orderLine in lines">
+            <td>{{ orderLine.productName }}</td>
+            <td>{{ orderLine.unitPrice | number }}</td>
+            <td>{{ orderLine.count | number }}</td>
+            <td>{{ getSubtotal(orderLine) | number }}</td>
             </tr>
             </tbody>
             <tfoot>
             <tr>
             <td colspan="3">合計:</td>
-            <td colspan="2">10,500</td>
+            <td>{{ getTotalAmount(lines) | number }}</td>
             </tr>
             </tfoot>
           </table>
-          <div>
-            <button type="button" class="btn btn-primary">明細行を追加</button>
-            <button type="button" class="btn btn-danger">帳票を初期化</button>
-            <button type="submit" class="btn btn-success">帳票を保存</button>
-          </div>
-        </form>
-      </script>
-
-      <script type="text/ng-template" id="sheet-tmpl">
-        <h1>帳票詳細 #x</h1>
-        <p>作成日時: yyyy/mm/dd</p>
-        <table class="table">
-          <colgroup span="4" class="col-md"></colgroup>
-          <thead>
-            <tr>
-              <th>商品名</th>
-              <th>単価</th>
-              <th>個数</th>
-              <th>小計</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>商品名1</td>
-              <td>1,600</td>
-              <td>10</td>
-              <td>16,000</td>
-            </tr>
-            <tr>
-              <td>商品名2</td>
-              <td>2,000</td>
-              <td>12</td>
-              <td>24,000</td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="3">合計:</td>
-              <td>40,000</td>
-            </tr>
-          </tfoot>
-        </table>
+        </div>
+        <div ng-hide="id">
+          存在しない帳票を参照しています。 <a href="#/new">新しい帳票を作る</a>
+        </div>
       </script>
       <!-- Template End -->
     </div>
@@ -129,6 +141,7 @@
     <script src="bower_components/angular-touch/angular-touch.js"></script>
 
     <script src="scripts/app.js"></script>
+    <script src="scripts/services/main.service.js"></script>
     <script src="scripts/main/main.controller.js"></script>
 </body>
 </html>
