@@ -62,6 +62,10 @@ angularChohyoTutorialService.service('sheetAction', ['$location', 'sheets',
       };
     }
 
+    this.testtest = function() {
+      console.log('aaa');
+    };
+
     // リストモデルを初期化する
     this.initialize = function () {
       this.lines = [createOrderLine()];

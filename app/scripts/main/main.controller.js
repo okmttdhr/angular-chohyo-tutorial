@@ -30,7 +30,10 @@ angularChohyoTutorialController.controller('CreationController', ['$scope', 'cou
       $scope.disabledDelBtn = val;
     });
 
+    // sheetAction.initialize() をこの形で呼べる。 lines をつくっている。
+    // sheetAction.testtest() は例えば以下の様な形で呼べる。
     $scope.initialize();
+    $scope.testtest();
 
   }
 ]);
